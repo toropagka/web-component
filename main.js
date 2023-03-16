@@ -14,7 +14,7 @@ class FormComponent extends HTMLElement {
           padding: 4px;
           border: 1px solid black;
           color: black;
-          min-width: 300px;
+          min-width: 18rem;
           min-height: 1.5rem;
           width: 100%;
 
@@ -27,8 +27,10 @@ class FormComponent extends HTMLElement {
         .container {
           width: 70%;
           height: auto;
+          margin: 0 auto;
         }
         .container {
+          margin-top: 3rem;
           position: relative;
         }
         .company_list {
@@ -37,6 +39,8 @@ class FormComponent extends HTMLElement {
           left: 0;
           background-color: white;
           width: 100%;
+          min-width: 18rem;
+
         }
         .row {
           margin-top: 1em;
@@ -166,7 +170,7 @@ class FormComponent extends HTMLElement {
   }
 
   //запускаем процесс обращения к АПИ и добавление данных по клику на нужную компанию
-  addInputListener(e) {
+  addInputListener() {
     let query = this.companyName.value;
     this.loadCompanies(query).then((companies) => {
       this.showCompanyList(companies);
