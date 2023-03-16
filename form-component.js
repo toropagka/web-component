@@ -129,9 +129,9 @@ class FormComponent extends HTMLElement {
 
   //запускаем процесс обращения к АПИ и добавление данных по клику на кнопку
   addInputListener(e) {
-    let query = this.personalNumber.value;
+    let query;
     console.log(query);
-    if (e.key === 'Enter')
+    if (e.key === 'Enter' && query == this.personalNumber.value)
       this.loadCompanies(query).then((companies) =>
         this.showCompanyList(companies)
       );
