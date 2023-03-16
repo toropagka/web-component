@@ -11,6 +11,8 @@ class FormComponent extends HTMLElement {
         input {
           font-size: 16px;
           padding: 4px;
+          border: 1px solid black;
+          color: black;
         }
 
         .company_status {
@@ -40,7 +42,7 @@ class FormComponent extends HTMLElement {
       
       <section class="container">
         <p><strong>Компания или ИП</strong></p>
-        <input id="company" name="party" type="text" placeholder="Введите название, ИНН, ОГРН или адрес организации" />
+        <input id="company" name="party" type="text" placeholder="Введите название, ИНН, ОГРН или адрес организации" disabled/>
         <div id="company_status" class="company_status"></div>
       </section>
 
@@ -48,11 +50,11 @@ class FormComponent extends HTMLElement {
         <p id="type"></p>
         <div class="row">
           <label>Краткое наименование</label>
-          <input id="name_short">
+          <input id="name_short" disabled>
         </div>
         <div class="row">
           <label>Полное наименование</label>
-          <input id="name_full">
+          <input id="name_full" disabled>
         </div>
         <div class="row">
           <label>ИНН / КПП</label>
@@ -60,7 +62,7 @@ class FormComponent extends HTMLElement {
         </div>
         <div class="row">
           <label>Адрес</label>
-          <input id="address">
+          <input id="address" disabled>
         </div>
       </section>
     `;
