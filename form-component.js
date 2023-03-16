@@ -8,11 +8,16 @@ class FormComponent extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>
-        input {
+        input,
+        .content {
           font-size: 16px;
           padding: 4px;
           border: 1px solid black;
           color: black;
+          min-width: 300px;
+          min-height: 1.5rem;
+          width: 100%;
+
         }
 
         .company_status {
@@ -20,9 +25,10 @@ class FormComponent extends HTMLElement {
           color:grey;
         }
         
-        .result {
+        .result,
+        .container {
           width: 70%;
-          min-width: 300px;
+          height: auto;
         }
         
         .row {
@@ -34,15 +40,14 @@ class FormComponent extends HTMLElement {
           min-width: 10em;
         }
         
-        .row input,
-        .row textarea {
+        .row input {
           width: 100%;
         }
       </style>
       
       <section class="container">
         <p><strong>Компания или ИП</strong></p>
-        <input id="company" name="party" type="text" placeholder="Введите название, ИНН, ОГРН или адрес организации" disabled/>
+        <div class="content" id="company" name="party" type="text"/></div>
         <div id="company_status" class="company_status"></div>
       </section>
 
@@ -50,19 +55,19 @@ class FormComponent extends HTMLElement {
         <p id="type"></p>
         <div class="row">
           <label>Краткое наименование</label>
-          <input id="name_short" disabled>
+          <div class="content" id="name_short"></div>
         </div>
         <div class="row">
           <label>Полное наименование</label>
-          <input id="name_full" disabled>
+          <div class="content" id="name_full"></div>
         </div>
         <div class="row">
           <label>ИНН / КПП</label>
-          <input id="inn_kpp">
+          <input id="inn_kpp" placeholder="Введите ИНН организации">
         </div>
         <div class="row">
           <label>Адрес</label>
-          <input id="address" disabled>
+          <div class="content" id="address"></div>
         </div>
       </section>
     `;
@@ -114,12 +119,12 @@ class FormComponent extends HTMLElement {
   showCompanyList(companies) {
     const company = companies[0];
 
-    this.companyName.value = company.value;
+    this.companyName.textContent = company.value;
     this.companyStatus.textContent = `Статус: ${company.data.state.status}`;
-    this.shortName.value = company.data.name.short;
-    this.fullName.value = company.data.name.full_with_opf;
+    this.shortName.textContent = company.data.name.short;
+    this.fullName.textContent = company.data.name.full_with_opf;
     this.personalNumber.value = `${company.data.inn} / ${company.data.kpp}`;
-    this.address.value = company.data.address.unrestricted_value;
+    this.address.textContent = company.data.address.unrestricted_value;
   }
 
   //запускаем процесс обращения к АПИ и добавление данных по клику на кнопку
