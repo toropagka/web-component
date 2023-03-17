@@ -17,6 +17,7 @@ class FormComponent extends HTMLElement {
           min-width: 18rem;
           min-height: 1.5rem;
           width: 100%;
+          margin-top: 1rem;
 
         }
         .company_status {
@@ -32,6 +33,13 @@ class FormComponent extends HTMLElement {
         .container {
           margin-top: 3rem;
           position: relative;
+        }
+        .button-reset {
+          color: red;
+          position: absolute;
+          top: 0;
+          right: 0;
+          cursor: pointer;
         }
         .company_list {
           position: absolute;
@@ -66,6 +74,7 @@ class FormComponent extends HTMLElement {
       </style>
       
       <section class="container">
+        <button type="button" class="button-reset" id="button_reset">&#10006;</button>
         <label for="company"><strong>Компания или ИП</strong><label>
         <input type="text" class="content" id="company" name="party"  placeholder="Введите название организации"/>
         <div id="company_list" class="company_list"></div>
@@ -101,6 +110,7 @@ class FormComponent extends HTMLElement {
     this.address = this.shadowRoot.getElementById('address');
     this.companyItems = this.shadowRoot.querySelectorAll('.company_item');
     this.personalNumber = this.shadowRoot.getElementById('inn_kpp');
+    this.buttonReset = this.shadowRoot.getElementById('button_reset');
 
     this.companyList = this.shadowRoot.getElementById('company_list');
     this.companyName = this.shadowRoot.getElementById('company');
@@ -109,6 +119,12 @@ class FormComponent extends HTMLElement {
       'input',
       this.addInputListener.bind(this)
     );
+
+    this.buttonReset.addEventListener('click', this.resetForm.bind(this));
+
+    this.companyList.addEventListener('click', this.addListListener.bind(this));
+
+    this.companiesList = [];
 
     this.URL =
       'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party';
@@ -138,20 +154,28 @@ class FormComponent extends HTMLElement {
     }
   }
 
-  //выводим список компаний по названию
-  showCompanyList(companies) {
-    // this.companyList.innerHTML = '';
-    companies.forEach((company) => {
-      this.companyList.innerHTML += `
-        <div class='company_item'  data-id='${company.data.inn}'>
-          <div class="item_title">${company.value}</div>
-
-          <div class="item_description">${company.data.inn}</div>
-          <div class="item_description item_description__block">${company.data.address.value}</div>
-        </div>
+  //шаблон для каждого айтем списка
+  companyItem(value, inn, address) {
+    return `
+      <div class='company_item'  data-id='${inn}'>
+        <div class="item_title">${value}</div>
+        <div class="item_description">${inn}</div>
+        <div class="item_description item_description__block">${address}</div>
+      </div>
     `;
-    });
-    if (companies.length > 0) {
+  }
+  //функция вывода списка компаний по названию
+  showCompanyList(companies) {
+    const companiesNode = companies.reduce((acc, { value, data }) => {
+      return (acc = [
+        ...acc,
+        this.companyItem(value, data.inn, data.address.value),
+      ]);
+    }, []);
+
+    this.companyList.innerHTML = companiesNode.join('');
+
+    if (companies?.length) {
       this.companyList.style.display = 'block';
       this.companyList.style.border = '1px solid grey';
     } else {
@@ -171,25 +195,45 @@ class FormComponent extends HTMLElement {
     this.address.textContent = address.unrestricted_value;
   }
 
-  //запускаем процесс обращения к АПИ и добавление данных по клику на нужную компанию
-  addInputListener() {
-    let query = this.companyName.value;
-    console.log(query);
-    this.loadCompanies(query).then((companies) => {
-      this.showCompanyList(companies);
-      if (!companies) return;
-      console.log(query);
+  //сброс полей по кнопке сброса
+  resetForm() {
+    this.companyName.value =
+      this.companyStatus.textContent =
+      this.shortName.textContent =
+      this.fullName.textContent =
+      this.personalNumber.textContent =
+      this.address.textContent =
+        '';
+    this.companyList.style.display = 'none';
+  }
 
-      this.companyList.addEventListener('click', (e) => {
-        const parentElementID = e.target.parentElement.dataset.id;
-        const company = companies.find(
-          (company) => company.data.inn === parentElementID
-        );
-        this.addValueInFields(company);
-        this.companyList.style.display = 'none';
-        console.log(query);
+  //запускаем процесс обращения к АПИ т ртсуем список подходящих компаний
+  addInputListener({ target }) {
+    let value = target.value;
+
+    value &&
+      this.loadCompanies(value).then((companies) => {
+        if (!companies?.length) return;
+
+        this.companiesList = companies;
+        this.showCompanyList(companies);
       });
+    if (!value) {
+      this.companyList.style.display = 'none';
+    }
+  }
+
+  //запускаем добавление данных по клику на нужную компанию
+  addListListener({ target }) {
+    const parentElementID = target.parentElement.dataset.id;
+
+    const company = this.companiesList.find((company) => {
+      console.log(company.data.inn, parentElementID);
+      return company.data.inn === parentElementID;
     });
+
+    company && this.addValueInFields(company);
+    this.companyList.style.display = 'none';
   }
 }
 
