@@ -8,10 +8,11 @@ class FormComponent extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>
-        input,
-        .content {
-          font-size: 16px;
-          padding: 4px;
+        .row_content,
+        .input_content {
+          font-size: 1rem;
+          padding: 0.25rem;
+          padding-right: 2rem;
           border: 1px solid black;
           color: black;
           min-width: 18rem;
@@ -34,21 +35,15 @@ class FormComponent extends HTMLElement {
           margin-top: 3rem;
           position: relative;
         }
-        .button-reset {
-          color: red;
-          position: absolute;
-          top: 0;
-          right: 0;
-          cursor: pointer;
-        }
+
         .company_list {
           position: absolute;
-          top: 3.5rem;
+          top: 4.5rem;
           left: 0;
           background-color: white;
           width: 100%;
           min-width: 18rem;
-
+          z-index: 10;
         }
         .row {
           margin-top: 1em;
@@ -71,33 +66,55 @@ class FormComponent extends HTMLElement {
         .item_title {
           padding-top: .5rem;
         }
+
+        .container_input {
+          position: relative;
+        }
+
+        .container_input input {
+          width: 100%;
+        }
+
+        .container_input .input_button-reset {
+          color: red;
+          position: absolute;
+          bottom: .5rem;
+          right: -2rem;
+          cursor: pointer;
+          display: none;
+          background: transparent;
+          border: none;
+        }
       </style>
       
       <section class="container">
-        <button type="button" class="button-reset" id="button_reset">&#10006;</button>
         <label for="company"><strong>Компания или ИП</strong><label>
-        <input type="text" class="content" id="company" name="party"  placeholder="Введите название организации"/>
-        <div id="company_list" class="company_list"></div>
+        <div class="container_input">
+          <input type="text" class="input_content" id="company" name="party"  placeholder="Введите название организации"/>
+          <button type="button" class="input_button-reset" id="button_reset">&#10006;</button>
+        </div>
+        <div id="company_list" class="company_list">
+
+        </div>
         <div id="company_status" class="company_status"></div>
       </section>
 
       <section class="result">
-        <p id="type"></p>
-        <div class="row">
+        <div class="result_row">
           <label for="name_short">Краткое наименование</label>
-          <div class="content" id="name_short"></div>
+          <div class="row_content" id="name_short"></div>
         </div>
         <div class="row">
           <label for="name_full">Полное наименование</label>
-          <div class="content" id="name_full"></div>
+          <div class="row_content" id="name_full"></div>
         </div>
         <div class="row">
           <label for="inn_kpp">ИНН / КПП</label>
-          <div class="content" id="inn_kpp"></div>
+          <div class="row_content" id="inn_kpp"></div>
         </div>
         <div class="row">
           <label for="address">Адрес</label>
-          <div class="content" id="address"></div>
+          <div class="row_content" id="address"></div>
         </div>
       </section>
     `;
@@ -111,7 +128,6 @@ class FormComponent extends HTMLElement {
     this.companyItems = this.shadowRoot.querySelectorAll('.company_item');
     this.personalNumber = this.shadowRoot.getElementById('inn_kpp');
     this.buttonReset = this.shadowRoot.getElementById('button_reset');
-
     this.companyList = this.shadowRoot.getElementById('company_list');
     this.companyName = this.shadowRoot.getElementById('company');
 
@@ -124,10 +140,10 @@ class FormComponent extends HTMLElement {
 
     this.companyList.addEventListener('click', this.addListListener.bind(this));
 
-    this.companiesList = [];
-
     this.URL =
       'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/party';
+
+    this.companiesList = [];
   }
 
   //делаем запрос в АПИ
@@ -148,6 +164,7 @@ class FormComponent extends HTMLElement {
     try {
       const response = await fetch(this.URL, options);
       const data = await response.json();
+
       return data.suggestions.filter((company) => company.data.inn);
     } catch (error) {
       throw Error(error);
@@ -157,7 +174,7 @@ class FormComponent extends HTMLElement {
   //шаблон для каждого айтем списка
   companyItem(value, inn, address) {
     return `
-      <div class='company_item'  data-id='${inn}'>
+      <div class='company_item' data-id='${inn}'>
         <div class="item_title">${value}</div>
         <div class="item_description">${inn}</div>
         <div class="item_description item_description__block">${address}</div>
@@ -174,19 +191,13 @@ class FormComponent extends HTMLElement {
     }, []);
 
     this.companyList.innerHTML = companiesNode.join('');
-
-    if (companies?.length) {
-      this.companyList.style.display = 'block';
-      this.companyList.style.border = '1px solid grey';
-    } else {
-      this.companyList.style.display = 'none';
-    }
   }
 
   //добавляем данные в соответствующие поля
   addValueInFields(company) {
     const { value, data } = company;
     const { state, name, inn, kpp, address } = data;
+
     this.companyName.value = value;
     this.companyStatus.textContent = `Статус: ${state.status}`;
     this.shortName.textContent = name.short;
@@ -205,21 +216,28 @@ class FormComponent extends HTMLElement {
       this.address.textContent =
         '';
     this.companyList.style.display = 'none';
+    this.buttonReset.style.display = 'none';
   }
 
   //запускаем процесс обращения к АПИ т ртсуем список подходящих компаний
   addInputListener({ target }) {
     let value = target.value;
 
-    value &&
+    if (!value) {
+      this.resetForm();
+    } else {
+      this.buttonReset.style.display = 'inline';
+
       this.loadCompanies(value).then((companies) => {
-        if (!companies?.length) return;
+        if (!companies?.length) {
+          this.companyList.style.display = 'none';
+          this.companiesList = [];
+        }
 
         this.companiesList = companies;
         this.showCompanyList(companies);
+        this.companyList.style.display = 'block';
       });
-    if (!value) {
-      this.companyList.style.display = 'none';
     }
   }
 
@@ -228,7 +246,6 @@ class FormComponent extends HTMLElement {
     const parentElementID = target.parentElement.dataset.id;
 
     const company = this.companiesList.find((company) => {
-      console.log(company.data.inn, parentElementID);
       return company.data.inn === parentElementID;
     });
 
