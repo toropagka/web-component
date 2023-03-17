@@ -17,9 +17,7 @@ class FormComponent extends HTMLElement {
           min-width: 300px;
           min-height: 1.5rem;
           width: 100%;
-
         }
-
         .company_status {
           margin-top: .5rem;
           color:grey;
@@ -29,6 +27,8 @@ class FormComponent extends HTMLElement {
         .container {
           width: 70%;
           height: auto;
+          margin: 0 auto;
+
         }
         
         .row {
@@ -50,7 +50,6 @@ class FormComponent extends HTMLElement {
         <div class="content" id="company" name="party" type="text"/></div>
         <div id="company_status" class="company_status"></div>
       </section>
-
       <section class="result">
         <p id="type"></p>
         <div class="row">
@@ -108,7 +107,6 @@ class FormComponent extends HTMLElement {
     try {
       const response = await fetch(this.URL, options);
       const data = await response.json();
-      console.log(data);
       return data.suggestions.filter((company) => company.data.inn);
     } catch (error) {
       return console.error(error);
@@ -129,9 +127,8 @@ class FormComponent extends HTMLElement {
 
   //запускаем процесс обращения к АПИ и добавление данных по клику на кнопку
   addInputListener(e) {
-    let query;
-    console.log(query);
-    if (e.key === 'Enter' && query == this.personalNumber.value)
+    let query = this.personalNumber.value;
+    if (e.key === 'Enter')
       this.loadCompanies(query).then((companies) =>
         this.showCompanyList(companies)
       );

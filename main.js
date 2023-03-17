@@ -140,7 +140,7 @@ class FormComponent extends HTMLElement {
 
   //выводим список компаний по названию
   showCompanyList(companies) {
-    this.companyList.innerHTML = '';
+    // this.companyList.innerHTML = '';
     companies.forEach((company) => {
       this.companyList.innerHTML += `
         <div class='company_item'  data-id='${company.data.inn}'>
@@ -161,19 +161,24 @@ class FormComponent extends HTMLElement {
 
   //добавляем данные в соответствующие поля
   addValueInFields(company) {
-    this.companyName.value = company.value;
-    this.companyStatus.textContent = `Статус: ${company.data.state.status}`;
-    this.shortName.textContent = company.data.name.short;
-    this.fullName.textContent = company.data.name.full_with_opf;
-    this.personalNumber.textContent = `${company.data.inn} / ${company.data.kpp}`;
-    this.address.textContent = company.data.address.unrestricted_value;
+    const { value, data } = company;
+    const { state, name, inn, kpp, address } = data;
+    this.companyName.value = value;
+    this.companyStatus.textContent = `Статус: ${state.status}`;
+    this.shortName.textContent = name.short;
+    this.fullName.textContent = name.full_with_opf;
+    this.personalNumber.textContent = `${inn} / ${kpp}`;
+    this.address.textContent = address.unrestricted_value;
   }
 
   //запускаем процесс обращения к АПИ и добавление данных по клику на нужную компанию
   addInputListener() {
     let query = this.companyName.value;
+    console.log(query);
     this.loadCompanies(query).then((companies) => {
       this.showCompanyList(companies);
+      if (!companies) return;
+      console.log(query);
 
       this.companyList.addEventListener('click', (e) => {
         const parentElementID = e.target.parentElement.dataset.id;
@@ -182,6 +187,7 @@ class FormComponent extends HTMLElement {
         );
         this.addValueInFields(company);
         this.companyList.style.display = 'none';
+        console.log(query);
       });
     });
   }
